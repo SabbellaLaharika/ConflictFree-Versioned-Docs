@@ -1,6 +1,7 @@
 import express from 'express';
 import { connectDB } from './db';
 import { runSeed } from './seed';
+import router from './routes';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -24,6 +25,9 @@ async function start() {
     // Continue anyway, maybe DB is already seeded but count check failed or network issue
   }
 
+  // Use routes
+  app.use('/api', router);
+
   // Basic health check endpoint
   app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
@@ -35,3 +39,4 @@ async function start() {
 }
 
 start();
+ 

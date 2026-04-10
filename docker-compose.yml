@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mongo:
     image: mongo:7
@@ -27,9 +25,6 @@ services:
       - MONGODB_URI=mongodb://mongo:27017/collaborative_docs
       - PORT=3000
       - WIKI_STUB_URL=https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-stub-articles1.xml.gz
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
 
 volumes:
   mongo_data:

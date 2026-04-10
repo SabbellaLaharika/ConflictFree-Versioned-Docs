@@ -55,10 +55,14 @@ export async function runSeed() {
 
     const flushBatch = async () => {
       if (batch.length > 0) {
-        await collection.insertMany(batch);
-        docCount += batch.length;
-        console.log(`Inserted ${docCount}/${TARGET_DOC_COUNT} documents...`);
-        batch = [];
+        try {
+          await collection.insertMany(batch);
+          docCount += batch.length;
+          console.log(`Progress: ${docCount}/${TARGET_DOC_COUNT} documents seeded.`);
+          batch = [];
+        } catch (err) {
+          console.error('Batch insert failed:', err);
+        }
       }
     };
 
