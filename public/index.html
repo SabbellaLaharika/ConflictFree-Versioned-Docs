@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collaborative Wiki Engine - Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --bg-card: rgba(22, 28, 45, 0.4);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --primary: #8b5cf6;
+      --primary-hover: #7c3aed;
+      --secondary: #14b8a6;
+      --accent-red: #ef4444;
+      --accent-amber: #f59e0b;
+      --font-outfit: 'Outfit', sans-serif;
+      --font-inter: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --glow-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.1) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(20, 184, 166, 0.05) 0px, transparent 50%);
+      color: var(--text-main);
+      font-family: var(--font-inter);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.1);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.15);
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    /* Main Container */
+    .app-container {
+      max-width: 1560px;
+      margin: 0 auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Header Styling */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .logo-section h1 {
+      font-family: var(--font-outfit);
+      font-size: 26px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #a78bfa 0%, #14b8a6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-section p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .badge-success {
+      background: rgba(20, 184, 166, 0.1);
+      color: var(--secondary);
+      border: 1px solid rgba(20, 184, 166, 0.2);
+    }
+    .badge-success .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--secondary);
+      box-shadow: 0 0 8px var(--secondary);
+    }
+
+    .tab-nav {
+      display: flex;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-family: var(--font-outfit);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: var(--glow-shadow);
+    }
+
+    /* Grid Layouts */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Cards */
+    .glass-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar {
+      max-height: calc(100vh - 180px);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .search-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .form-control {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      color: white;
+      padding: 12px 16px;
+      font-family: var(--font-inter);
+      font-size: 14px;
+      width: 100%;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    .form-control:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.15);
+    }
+
+    .doc-list-container {
+      overflow-y: auto;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-right: 4px;
+    }
+
+    .doc-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .doc-card:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(139, 92, 246, 0.4);
+      transform: translateY(-2px);
+    }
+    .doc-card.active {
+      background: rgba(139, 92, 246, 0.1);
+      border-color: var(--primary);
+    }
+
+    .doc-card-title {
+      font-family: var(--font-outfit);
+      font-weight: 600;
+      font-size: 15px;
+      color: white;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .doc-card-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+    .doc-card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .tag-pill {
+      font-size: 9px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-muted);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Content Area Styles */
+    .content-area {
+      min-height: calc(100vh - 180px);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .editor-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+      flex-grow: 1;
+    }
+
+    @media (max-width: 1200px) {
+      .editor-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .editor-section {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .editor-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 16px;
+    }
+
+    .editor-title-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 70%;
+    }
+
+    .editor-title-container input {
+      background: transparent;
+      border: none;
+      border-bottom: 1px dashed transparent;
+      font-family: var(--font-outfit);
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
+      outline: none;
+      width: 100%;
+      padding: 4px 0;
+      transition: all 0.3s;
+    }
+    .editor-title-container input:focus {
+      border-color: var(--primary);
+    }
+
+    .version-indicator {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .version-badge {
+      background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 15px;
+      box-shadow: var(--glow-shadow);
+    }
+
+    .textarea-container {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .editor-textarea {
+      background: rgba(15, 23, 42, 0.3);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      color: var(--text-main);
+      font-family: var(--font-inter);
+      font-size: 15px;
+      line-height: 1.6;
+      padding: 20px;
+      resize: none;
+      min-height: 380px;
+      flex-grow: 1;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+    .editor-textarea:focus {
+      border-color: var(--primary);
+      background: rgba(15, 23, 42, 0.4);
+    }
+
+    .editor-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn {
+      font-family: var(--font-outfit);
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px 24px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: var(--glow-shadow);
+    }
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    /* Simulation Control Box */
+    .side-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .control-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    .control-box-title {
+      font-family: var(--font-outfit);
+      font-weight: 600;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--secondary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toggle-group {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+    }
+    .toggle-label {
+      font-size: 13px;
+      color: var(--text-main);
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+    .switch input { 
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(255, 255, 255, 0.1);
+      transition: .4s;
+      border-radius: 24px;
+      border: 1px solid var(--border-color);
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px; width: 16px;
+      left: 3px; bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+    input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    /* Revision Timeline */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      max-height: 400px;
+      padding-right: 4px;
+    }
+    .timeline-item {
+      position: relative;
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .timeline-item:hover {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: rgba(139, 92, 246, 0.2);
+    }
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .timeline-version {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--secondary);
+    }
+    .timeline-diff {
+      display: none;
+      margin-top: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 8px;
+      border-radius: 6px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      border: 1px solid rgba(255,255,255,0.05);
+      color: #34d399;
+    }
+    .timeline-diff.show {
+      display: block;
+    }
+
+    /* Analytics Section Styles */
+    .analytics-view {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .analytics-view.active {
+      display: grid;
+    }
+    @media (max-width: 900px) {
+      .analytics-view.active {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .analytics-header {
+      font-family: var(--font-outfit);
+      font-weight: 700;
+      font-size: 18px;
+      color: white;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .edit-rank-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.01);
+      border: 1px solid var(--border-color);
+      margin-bottom: 10px;
+    }
+    .rank-number {
+      font-family: var(--font-outfit);
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+      width: 28px;
+      text-align: center;
+    }
+    .rank-info {
+      flex-grow: 1;
+      overflow: hidden;
+    }
+    .rank-title {
+      font-family: var(--font-outfit);
+      font-weight: 600;
+      font-size: 14px;
+      color: white;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+    .rank-slug {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .rank-count {
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      color: #c084fc;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* Co-occurrence tags */
+    .cooccur-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .cooccur-card {
+      background: rgba(255,255,255,0.01);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .cooccur-tags {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .cooccur-tag {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--secondary);
+    }
+    .cooccur-count {
+      font-family: var(--font-outfit);
+      font-weight: 700;
+      font-size: 18px;
+      color: white;
+      background: rgba(20, 184, 166, 0.1);
+      border: 1px solid rgba(20, 184, 166, 0.2);
+      padding: 6px 12px;
+      border-radius: 8px;
+    }
+
+    /* OCC Conflict Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(5, 7, 13, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.show {
+      display: flex;
+    }
+    .modal {
+      background: #0f172a;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 20px;
+      max-width: 900px;
+      width: 100%;
+      box-shadow: 0 0 50px rgba(239, 68, 68, 0.15);
+      display: flex;
+      flex-direction: column;
+      max-height: 85vh;
+      animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes modalFadeIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-header h2 {
+      font-family: var(--font-outfit);
+      font-size: 20px;
+      color: var(--accent-red);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .conflict-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .diff-comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 768px) {
+      .diff-comparison {
+        grid-template-columns: 1fr;
+      }
+    }
+    .diff-panel {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .diff-panel-title {
+      font-family: var(--font-outfit);
+      font-weight: 600;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .diff-panel-content {
+      font-family: var(--font-inter);
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      overflow-y: auto;
+      max-height: 250px;
+      color: var(--text-muted);
+    }
+    .diff-panel.mine .diff-panel-title { color: #60a5fa; }
+    .diff-panel.db .diff-panel-title { color: #f87171; }
+    
+    .modal-footer {
+      padding: 24px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      bottom: 24px; right: 24px;
+      z-index: 1100;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .toast {
+      background: #1e293b;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: white;
+      min-width: 300px;
+      animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes toastSlideIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .toast-success { border-left: 4px solid var(--secondary); }
+    .toast-error { border-left: 4px solid var(--accent-red); }
+    .toast-info { border-left: 4px solid var(--primary); }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header>
+      <div class="logo-section">
+        <h1>Collaborative Wiki Engine</h1>
+        <p>Advanced MongoDB OCC & Schema Evolution Demo</p>
+      </div>
+      <div class="header-actions">
+        <div class="badge badge-success">
+          <span class="dot"></span> Database Online
+        </div>
+        <div class="tab-nav">
+          <button class="tab-btn active" onclick="switchTab('wiki')">Wiki Editor</button>
+          <button class="tab-btn" onclick="switchTab('analytics')">System Analytics</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Wiki Main Grid View -->
+    <div id="wiki-tab-view" class="main-grid">
+      <!-- Left sidebar: Documents List -->
+      <aside class="glass-card sidebar">
+        <div class="search-group">
+          <input type="text" id="search-q" class="form-control" placeholder="Search title or content..." oninput="triggerSearch()">
+          <input type="text" id="search-tags" class="form-control" placeholder="Filter by tags (comma separated)..." oninput="triggerSearch()">
+        </div>
+        <button class="btn btn-primary" onclick="initNewDocument()">
+          ➕ Create New Wiki Page
+        </button>
+        <div class="doc-list-container" id="document-list">
+          <!-- Populated dynamically -->
+        </div>
+      </aside>
+
+      <!-- Center & Right: Document Editor / Revisions -->
+      <main class="content-area">
+        <div class="editor-grid">
+          <!-- Editor Form -->
+          <section class="glass-card editor-section">
+            <div class="editor-header">
+              <div class="editor-title-container">
+                <input type="text" id="doc-title" placeholder="Document Title..." readonly>
+                <div style="font-size: 12px; color: var(--text-muted);" id="doc-slug-label"></div>
+              </div>
+              <div class="version-indicator">
+                <span style="font-size: 12px; color: var(--text-muted);">Current Version</span>
+                <span class="version-badge" id="doc-version-badge">v0</span>
+              </div>
+            </div>
+
+            <div class="textarea-container">
+              <textarea id="doc-content" class="editor-textarea" placeholder="Start writing wiki documentation..." readonly></textarea>
+            </div>
+
+            <!-- Tags & Author Inputs -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div>
+                <label style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px; display: block;">Tags (comma separated)</label>
+                <input type="text" id="doc-tags" class="form-control" placeholder="e.g. guide, database, node">
+              </div>
+              <div id="author-inputs" style="display: none;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <div>
+                    <label style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px; display: block;">Author Name</label>
+                    <input type="text" id="doc-author-name" class="form-control" placeholder="Author Name">
+                  </div>
+                  <div>
+                    <label style="font-size: 12px; color: var(--text-muted); margin-bottom: 6px; display: block;">Author Email</label>
+                    <input type="email" id="doc-author-email" class="form-control" placeholder="email@test.com">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="editor-actions">
+              <button class="btn btn-secondary" id="edit-toggle-btn" onclick="toggleEditMode()" disabled>
+                ✏️ Edit Document
+              </button>
+              <button class="btn btn-primary" id="save-btn" onclick="saveDocument()" style="display: none;">
+                💾 Save Changes
+              </button>
+            </div>
+          </section>
+
+          <!-- Sidebar Panels: OCC Simulation and Revision History -->
+          <section class="side-panel">
+            <!-- OCC Simulation Box -->
+            <div class="glass-card control-box">
+              <div class="control-box-title">
+                ⚡ OCC Concurrency Simulator
+              </div>
+              <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.4;">
+                Enable to simulate another client saving an edit in the background before you, throwing a 409 Conflict.
+              </p>
+              <div class="toggle-group">
+                <span class="toggle-label">Simulate Outdated Version</span>
+                <label class="switch">
+                  <input type="checkbox" id="simulate-conflict">
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Revision History -->
+            <div class="glass-card" style="flex-grow: 1;">
+              <h3 style="font-family: var(--font-outfit); font-size: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <span>📜 Revision History</span>
+                <span style="font-size: 11px; color: var(--text-muted);" id="revision-count">0 edits</span>
+              </h3>
+              <div class="timeline" id="revision-timeline">
+                <!-- Populated dynamically -->
+                <div style="font-size: 13px; color: var(--text-muted); text-align: center; margin-top: 40px;">
+                  Select a document to see revisions
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <!-- Analytics Dashboard View -->
+    <div id="analytics-tab-view" class="analytics-view">
+      <!-- Most Edited Card -->
+      <section class="glass-card">
+        <div class="analytics-header">
+          <span>🔥 Top 10 Most-Edited Documents</span>
+          <span class="badge badge-success" style="font-size: 10px;">Live Stats</span>
+        </div>
+        <div id="most-edited-list" style="display: flex; flex-direction: column;">
+          <!-- Populated dynamically -->
+        </div>
+      </section>
+
+      <!-- Tag Co-occurrence Card -->
+      <section class="glass-card">
+        <div class="analytics-header">
+          <span>🏷️ Tag Co-occurrence Frequencies</span>
+          <span class="badge badge-success" style="font-size: 10px;">Linear O(N) Pipeline</span>
+        </div>
+        <div class="cooccur-grid" id="cooccurrence-grid">
+          <!-- Populated dynamically -->
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- OCC Conflict Recovery Modal -->
+  <div class="modal-overlay" id="conflict-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>⚠️ Concurrency Version Conflict (HTTP 409)</h2>
+      </div>
+      <div class="modal-body">
+        <p class="conflict-desc">
+          <strong>Database Write Blocked.</strong> The version you modified (v<span id="modal-client-ver"></span>) is older than the current version in the database (v<span id="modal-db-ver"></span>). This prevents concurrent edits from overwriting each other. Compare the contents below:
+        </p>
+        <div class="diff-comparison">
+          <div class="diff-panel mine">
+            <div class="diff-panel-title">Your Changes (Rejected)</div>
+            <div class="diff-panel-content" id="modal-mine-content"></div>
+          </div>
+          <div class="diff-panel db">
+            <div class="diff-panel-title">Database Version (Latest)</div>
+            <div class="diff-panel-content" id="modal-db-content"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeConflictModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="adoptLatestConflictDocument()">Adopt Latest Version & Merge</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div class="toast-container" id="toast-box"></div>
+
+  <script>
+    let currentDocument = null;
+    let isEditMode = false;
+    let isCreatingNew = false;
+
+    // Run startup load
+    window.addEventListener('load', () => {
+      fetchDocuments();
+    });
+
+    function showToast(message, type = 'info') {
+      const box = document.getElementById('toast-box');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.innerText = message;
+      box.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+      }, 4000);
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.innerText.toLowerCase().includes(tab));
+      if (activeBtn) activeBtn.classList.add('active');
+
+      if (tab === 'wiki') {
+        document.getElementById('wiki-tab-view').style.display = 'grid';
+        document.getElementById('analytics-tab-view').style.display = 'none';
+      } else {
+        document.getElementById('wiki-tab-view').style.display = 'none';
+        document.getElementById('analytics-tab-view').style.display = 'grid';
+        fetchAnalytics();
+      }
+    }
+
+    async function fetchDocuments(query = '', tags = '') {
+      try {
+        let url = '/api/search';
+        if (query || tags) {
+          url += `?q=${encodeURIComponent(query)}&tags=${encodeURIComponent(tags)}`;
+        } else {
+          // Default: Search empty or fetch list. In this backend we search all
+          url += '?q=';
+        }
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Search failed');
+        const docs = await res.json();
+        
+        renderDocumentList(docs);
+      } catch (err) {
+        showToast('Error loading wiki pages: ' + err.message, 'error');
+      }
+    }
+
+    let searchTimeout = null;
+    function triggerSearch() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        const q = document.getElementById('search-q').value;
+        const tags = document.getElementById('search-tags').value;
+        fetchDocuments(q, tags);
+      }, 300);
+    }
+
+    function renderDocumentList(docs) {
+      const container = document.getElementById('document-list');
+      container.innerHTML = '';
+
+      if (docs.length === 0) {
+        container.innerHTML = '<div style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 20px;">No documents found</div>';
+        return;
+      }
+
+      docs.forEach(doc => {
+        const card = document.createElement('div');
+        card.className = `doc-card ${currentDocument && currentDocument.slug === doc.slug ? 'active' : ''}`;
+        card.onclick = () => loadDocument(doc.slug);
+
+        const title = document.createElement('div');
+        title.className = 'doc-card-title';
+        title.innerText = doc.title;
+
+        const meta = document.createElement('div');
+        meta.className = 'doc-card-meta';
+        meta.innerHTML = `<span>v${doc.version}</span><span>${new Date(doc.metadata.updatedAt).toLocaleDateString()}</span>`;
+
+        const tags = document.createElement('div');
+        tags.className = 'doc-card-tags';
+        (doc.tags || []).forEach(t => {
+          const pill = document.createElement('span');
+          pill.className = 'tag-pill';
+          pill.innerText = t;
+          tags.appendChild(pill);
+        });
+
+        card.appendChild(title);
+        card.appendChild(meta);
+        if (doc.tags && doc.tags.length > 0) card.appendChild(tags);
+
+        container.appendChild(card);
+      });
+    }
+
+    async function loadDocument(slug) {
+      try {
+        const res = await fetch(`/api/documents/${slug}`);
+        if (!res.ok) throw new Error('Failed to load document');
+        const doc = await res.json();
+
+        currentDocument = doc;
+        isCreatingNew = false;
+        disableEditMode();
+
+        document.getElementById('doc-title').value = doc.title;
+        document.getElementById('doc-content').value = doc.content;
+        document.getElementById('doc-tags').value = (doc.tags || []).join(', ');
+        document.getElementById('doc-slug-label').innerText = `slug: ${doc.slug}`;
+        document.getElementById('doc-version-badge').innerText = `v${doc.version}`;
+
+        document.getElementById('edit-toggle-btn').disabled = false;
+
+        // Render revisions
+        renderRevisionHistory(doc.revision_history || []);
+
+        // Update active class in list
+        document.querySelectorAll('.doc-card').forEach(card => {
+          const isThis = card.querySelector('.doc-card-title').innerText === doc.title;
+          card.classList.toggle('active', isThis);
+        });
+
+      } catch (err) {
+        showToast('Error loading page: ' + err.message, 'error');
+      }
+    }
+
+    function renderRevisionHistory(revisions) {
+      const timeline = document.getElementById('revision-timeline');
+      document.getElementById('revision-count').innerText = `${revisions.length} edits`;
+      timeline.innerHTML = '';
+
+      if (revisions.length === 0) {
+        timeline.innerHTML = '<div style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 20px;">No edits on record</div>';
+        return;
+      }
+
+      // Reverse list to show newest on top
+      [...revisions].reverse().forEach((rev, idx) => {
+        const item = document.createElement('div');
+        item.className = 'timeline-item';
+        item.onclick = (e) => {
+          // Toggle visibility of the diff
+          const diffEl = item.querySelector('.timeline-diff');
+          diffEl.classList.toggle('show');
+        };
+
+        const header = document.createElement('div');
+        header.className = 'timeline-header';
+        header.innerHTML = `<span class="timeline-version">Version ${rev.version}</span><span>${new Date(rev.updatedAt).toLocaleTimeString()}</span>`;
+
+        const author = document.createElement('div');
+        author.style.fontSize = '12px';
+        author.style.color = 'var(--text-main)';
+        author.innerText = `Modified by: ${rev.authorId}`;
+
+        const diffCode = document.createElement('pre');
+        diffCode.className = 'timeline-diff';
+        diffCode.innerText = rev.contentDiff || 'No changes recorded';
+
+        item.appendChild(header);
+        item.appendChild(author);
+        item.appendChild(diffCode);
+
+        timeline.appendChild(item);
+      });
+    }
+
+    function toggleEditMode() {
+      if (isEditMode) {
+        disableEditMode();
+      } else {
+        enableEditMode();
+      }
+    }
+
+    function enableEditMode() {
+      isEditMode = true;
+      document.getElementById('doc-title').readOnly = false;
+      document.getElementById('doc-content').readOnly = false;
+      document.getElementById('doc-title').focus();
+      document.getElementById('edit-toggle-btn').innerText = '🚫 Cancel';
+      document.getElementById('save-btn').style.display = 'inline-flex';
+    }
+
+    function disableEditMode() {
+      isEditMode = false;
+      document.getElementById('doc-title').readOnly = true;
+      document.getElementById('doc-content').readOnly = true;
+      document.getElementById('edit-toggle-btn').innerText = '✏️ Edit Document';
+      document.getElementById('save-btn').style.display = 'none';
+      document.getElementById('author-inputs').style.display = 'none';
+
+      if (currentDocument) {
+        document.getElementById('doc-title').value = currentDocument.title;
+        document.getElementById('doc-content').value = currentDocument.content;
+        document.getElementById('doc-tags').value = (currentDocument.tags || []).join(', ');
+      }
+    }
+
+    function initNewDocument() {
+      isCreatingNew = true;
+      currentDocument = null;
+      
+      document.getElementById('doc-title').value = '';
+      document.getElementById('doc-content').value = '';
+      document.getElementById('doc-tags').value = '';
+      document.getElementById('doc-slug-label').innerText = 'New Page Draft';
+      document.getElementById('doc-version-badge').innerText = 'v0';
+
+      enableEditMode();
+      document.getElementById('edit-toggle-btn').disabled = true;
+      document.getElementById('author-inputs').style.display = 'block';
+    }
+
+    async function saveDocument() {
+      const title = document.getElementById('doc-title').value.trim();
+      const content = document.getElementById('doc-content').value.trim();
+      const tagsRaw = document.getElementById('doc-tags').value;
+      const tags = tagsRaw.split(',').map(t => t.trim()).filter(t => t);
+
+      if (!title || !content) {
+        showToast('Title and content are required', 'error');
+        return;
+      }
+
+      if (isCreatingNew) {
+        const authorName = document.getElementById('doc-author-name').value.trim();
+        const authorEmail = document.getElementById('doc-author-email').value.trim();
+
+        if (!authorName || !authorEmail) {
+          showToast('Author details are required for new documents', 'error');
+          return;
+        }
+
+        try {
+          const res = await fetch('/api/documents', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, content, tags, authorName, authorEmail })
+          });
+
+          if (!res.ok) throw new Error('Failed to create page');
+          const newDoc = await res.json();
+          showToast('Document created successfully', 'success');
+          isCreatingNew = false;
+          fetchDocuments();
+          loadDocument(newDoc.slug);
+        } catch (err) {
+          showToast('Creation error: ' + err.message, 'error');
+        }
+
+      } else {
+        // Update document using OCC
+        const simulateConflict = document.getElementById('simulate-conflict').checked;
+        // If simulated, send an outdated version (e.g. version - 1), otherwise current
+        const expectedVersion = simulateConflict ? currentDocument.version - 1 : currentDocument.version;
+
+        try {
+          const res = await fetch(`/api/documents/${currentDocument.slug}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title,
+              content,
+              tags,
+              version: expectedVersion
+            })
+          });
+
+          if (res.status === 409) {
+            const conflictData = await res.json();
+            triggerConflictModal(conflictData.currentDocument, content);
+            return;
+          }
+
+          if (!res.ok) throw new Error('Failed to save update');
+          const updatedDoc = await res.json();
+          showToast('Document saved successfully (version incremented)', 'success');
+          
+          fetchDocuments();
+          loadDocument(updatedDoc.slug);
+        } catch (err) {
+          showToast('Save error: ' + err.message, 'error');
+        }
+      }
+    }
+
+    // OCC Conflict Modal Trigger
+    let latestConflictDocument = null;
+    function triggerConflictModal(dbDoc, myContent) {
+      latestConflictDocument = dbDoc;
+      document.getElementById('modal-client-ver').innerText = currentDocument.version;
+      document.getElementById('modal-db-ver').innerText = dbDoc.version;
+      document.getElementById('modal-mine-content').innerText = myContent;
+      document.getElementById('modal-db-content').innerText = dbDoc.content;
+
+      document.getElementById('conflict-modal').classList.add('show');
+      showToast('Version mismatch detected! Write aborted by database.', 'error');
+    }
+
+    function closeConflictModal() {
+      document.getElementById('conflict-modal').classList.remove('show');
+    }
+
+    function adoptLatestConflictDocument() {
+      closeConflictModal();
+      if (latestConflictDocument) {
+        showToast('Latest version adopted from database', 'info');
+        loadDocument(latestConflictDocument.slug);
+      }
+    }
+
+    // Analytics Load
+    async function fetchAnalytics() {
+      try {
+        // Fetch Most Edited
+        const mostEditedRes = await fetch('/api/analytics/most-edited');
+        if (!mostEditedRes.ok) throw new Error('Failed to load most-edited statistics');
+        const mostEdited = await mostEditedRes.json();
+        renderMostEdited(mostEdited);
+
+        // Fetch Tag Co-occurrence
+        const cooccurRes = await fetch('/api/analytics/tag-cooccurrence');
+        if (!cooccurRes.ok) throw new Error('Failed to load tag frequencies');
+        const cooccur = await cooccurRes.json();
+        renderCooccurrence(cooccur);
+
+      } catch (err) {
+        showToast('Analytics error: ' + err.message, 'error');
+      }
+    }
+
+    function renderMostEdited(list) {
+      const container = document.getElementById('most-edited-list');
+      container.innerHTML = '';
+
+      if (list.length === 0) {
+        container.innerHTML = '<div style="font-size: 13px; color: var(--text-muted); padding: 20px; text-align: center;">No analytics data</div>';
+        return;
+      }
+
+      list.forEach((doc, idx) => {
+        const item = document.createElement('div');
+        item.className = 'edit-rank-item';
+
+        const rank = document.createElement('div');
+        rank.className = 'rank-number';
+        rank.innerText = `#${idx + 1}`;
+
+        const info = document.createElement('div');
+        info.className = 'rank-info';
+        info.innerHTML = `<div class="rank-title">${doc.title}</div><div class="rank-slug">slug: ${doc.slug}</div>`;
+
+        const count = document.createElement('div');
+        count.className = 'rank-count';
+        count.innerText = `${doc.revisionCount} revisions`;
+
+        item.appendChild(rank);
+        item.appendChild(info);
+        item.appendChild(count);
+
+        container.appendChild(item);
+      });
+    }
+
+    function renderCooccurrence(pairs) {
+      const container = document.getElementById('cooccurrence-grid');
+      container.innerHTML = '';
+
+      if (pairs.length === 0) {
+        container.innerHTML = '<div style="font-size: 13px; color: var(--text-muted); padding: 20px; text-align: center; grid-column: span 2;">No co-occurrence data</div>';
+        return;
+      }
+
+      pairs.forEach(pair => {
+        const card = document.createElement('div');
+        card.className = 'cooccur-card';
+
+        const tagsDiv = document.createElement('div');
+        tagsDiv.className = 'cooccur-tags';
+        pair.tags.forEach(t => {
+          const tagSpan = document.createElement('span');
+          tagSpan.className = 'cooccur-tag';
+          tagSpan.innerText = `#${t}`;
+          tagsDiv.appendChild(tagSpan);
+        });
+
+        const countDiv = document.createElement('div');
+        countDiv.className = 'cooccur-count';
+        countDiv.innerText = pair.count;
+
+        card.appendChild(tagsDiv);
+        card.appendChild(countDiv);
+
+        container.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>

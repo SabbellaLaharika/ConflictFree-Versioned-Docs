@@ -51,22 +51,32 @@ export async function runSeed() {
     let currentTitle = '';
     let currentText = '';
     let docCount = 0;
+    let isResolved = false;
     let batch: any[] = [];
 
-    const flushBatch = async () => {
-      if (batch.length > 0) {
-        try {
-          await collection.insertMany(batch);
-          docCount += batch.length;
-          console.log(`Progress: ${docCount}/${TARGET_DOC_COUNT} documents seeded.`);
-          batch = [];
-        } catch (err) {
-          console.error('Batch insert failed:', err);
+    const flushBatch = async (batchToInsert: any[]) => {
+      if (batchToInsert.length === 0) return;
+      try {
+        await collection.insertMany(batchToInsert, { ordered: false });
+        docCount += batchToInsert.length;
+        console.log(`Progress: ${docCount}/${TARGET_DOC_COUNT} documents seeded.`);
+      } catch (err: any) {
+        console.error('Batch insert warning (duplicate keys skipped):', err.message);
+        // MongoDB insertMany with ordered: false returns insertedCount in the error result
+        if (err.result && err.result.insertedCount) {
+          docCount += err.result.insertedCount;
         }
       }
     };
 
     return new Promise<void>((resolve, reject) => {
+      const handleResolve = () => {
+        if (!isResolved) {
+          isResolved = true;
+          resolve();
+        }
+      };
+
       saxStream.on('opentag', (node) => {
         currentTag = node.name;
       });
@@ -83,14 +93,24 @@ export async function runSeed() {
             batch.push(doc);
 
             if (batch.length >= BATCH_SIZE) {
+              const batchToInsert = batch;
+              batch = []; // Reassign immediately so concurrent events don't append to the active batch
+
               response.data.pause();
-              await flushBatch();
+              await flushBatch(batchToInsert);
               response.data.resume();
             }
-          } else if (docCount + batch.length === TARGET_DOC_COUNT) {
-            await flushBatch();
+          }
+          
+          if (docCount + batch.length >= TARGET_DOC_COUNT) {
+            if (batch.length > 0) {
+              const batchToInsert = batch;
+              batch = [];
+              await flushBatch(batchToInsert);
+            }
             console.log('Seed completed successfully.');
-            resolve();
+            response.data.destroy();
+            handleResolve();
           }
 
           currentTitle = '';
@@ -101,12 +121,18 @@ export async function runSeed() {
 
       saxStream.on('error', (e) => {
         console.error('SAX Error:', e);
-        reject(e);
+        if (!isResolved) {
+          reject(e);
+        }
       });
 
       saxStream.on('end', async () => {
-        await flushBatch();
-        resolve();
+        if (batch.length > 0) {
+          const batchToInsert = batch;
+          batch = [];
+          await flushBatch(batchToInsert);
+        }
+        handleResolve();
       });
 
       response.data.pipe(gunzip).pipe(saxStream);

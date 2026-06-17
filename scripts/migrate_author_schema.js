@@ -3,8 +3,8 @@ const dotenv = require('dotenv');
 
 dotenv.config();
 
-const url = process.env.MONGODB_URI || 'mongodb://localhost:27017/collaborative_docs';
-const dbName = 'collaborative_docs';
+const url = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const dbName = process.env.DATABASE_NAME || 'collaborative_docs';
 const BATCH_SIZE = 1000;
 
 async function migrate() {

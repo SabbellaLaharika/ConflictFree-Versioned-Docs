@@ -20,6 +20,7 @@ RUN npm install --omit=dev
 
 # Copy compiled code from builder
 COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /usr/src/app/public ./public
 # Note: Keeping src is optional for production but useful for ts-node debugging if needed
 # For this project, we need it if we want to run seeding via ts-node, 
 # although we can also run the compiled version.

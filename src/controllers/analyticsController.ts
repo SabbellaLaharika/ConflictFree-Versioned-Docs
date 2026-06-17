@@ -69,27 +69,28 @@ export async function getTagCooccurrence(req: Request, res: Response) {
     // 3. Unwind again (to create pairs with original)
     // 4. Match and group
     
-    // Actually, a more standard tag co-occurrence pipeline:
     const pipeline = [
-      { $match: { "tags.1": { $exists: true } } }, // docs with at least 2 tags
-      { $unwind: "$tags" },
-      {
-        $lookup: {
-          from: "documents",
-          localField: "_id",
-          foreignField: "_id",
-          as: "doc"
-        }
-      },
-      { $unwind: "$doc" },
-      { $unwind: "$doc.tags" },
-      { $match: { $expr: { $lt: ["$tags", "$doc.tags"] } } }, // avoid self-pairs and duplicates
-      {
-        $group: {
-          _id: { tag1: "$tags", tag2: "$doc.tags" },
-          count: { $sum: 1 }
-        }
-      },
+      // Filter for documents with at least 2 tags to reduce initial set
+      { $match: { 'tags.1': { $exists: true } } },
+      // Create all unique, sorted pairs of tags within each document
+      { $project: {
+          pairs: { $setUnion: [ { $map: {
+              input: '$tags',
+              as: 'tag1',
+              in: { $map: {
+                  input: '$tags',
+                  as: 'tag2',
+                  in: { $cond: [ { $lt: ['$$tag1', '$$tag2'] }, ['$$tag1', '$$tag2'], null ] }
+              } }
+          } } ] }
+      } },
+      { $unwind: '$pairs' },
+      { $unwind: '$pairs' },
+      { $match: { pairs: { $ne: null } } },
+      // Group by the pair and count occurrences
+      { $group: { _id: '$pairs', count: { $sum: 1 } } },
+      // Project the array format into the required response structure
+      { $project: { _id: 0, tags: '$_id', count: 1 } },
       { $sort: { count: -1 } },
       { $limit: 20 }
     ];

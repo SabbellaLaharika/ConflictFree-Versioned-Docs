@@ -3,8 +3,8 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const url = process.env.MONGODB_URI || 'mongodb://localhost:27017/collaborative_docs';
-const dbName = 'collaborative_docs';
+const url = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const dbName = process.env.DATABASE_NAME || 'collaborative_docs';
 
 let client: MongoClient;
 let db: Db;
@@ -28,4 +28,12 @@ export function getDB(): Db {
     throw new Error('Database not initialized. Call connectDB first.');
   }
   return db;
+}
+
+export async function disconnectDB(): Promise<void> {
+  if (client) {
+    await client.close();
+    db = undefined as any;
+    client = undefined as any;
+  }
 }

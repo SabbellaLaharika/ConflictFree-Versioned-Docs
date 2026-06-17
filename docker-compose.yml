@@ -22,7 +22,9 @@ services:
       mongo:
         condition: service_healthy
     environment:
+      - MONGO_URI=mongodb://mongo:27017
       - MONGODB_URI=mongodb://mongo:27017/collaborative_docs
+      - DATABASE_NAME=collaborative_docs
       - PORT=3000
       - WIKI_STUB_URL=https://dumps.wikimedia.org/enwiki/latest/enwiki-latest-stub-articles1.xml.gz
 

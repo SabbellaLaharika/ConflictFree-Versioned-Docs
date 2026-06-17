@@ -76,7 +76,11 @@ export async function getDocument(req: Request, res: Response) {
       collection.updateOne(
         { _id: doc._id },
         { $set: { 'metadata.author': doc.metadata.author } }
-      ).catch(err => console.error('Lazy migration failed for doc:', doc?._id, err));
+      ).catch(err => {
+        // In a production environment, this failure should be dispatched to a reliable message broker/retry queue
+        // (like RabbitMQ, BullMQ, or SQS) and logged to a structured monitoring service (like Winston/Pino to Sentry/Datadog).
+        console.error(`LAZY_MIGRATION_FAILURE: Failed to persist schema upgrade for document ID: ${doc?._id}. Error: ${err.message}`);
+      });
     }
 
     res.json(doc);
@@ -122,15 +126,7 @@ export async function updateDocument(req: Request, res: Response) {
       return res.status(404).json({ error: 'Document not found' });
     }
 
-    // 1. Initial OCC check
-    if (currentDoc.version !== expectedVersion) {
-      return res.status(409).json({
-        error: 'Conflict: Document has been modified by another user',
-        currentDocument: currentDoc
-      });
-    }
-
-    // 2. Generate diff for revision history
+    // 1. Generate diff for revision history (without prior non-atomic version check)
     const patch = Diff.createPatch(slug as string, currentDoc.content as string, content as string);
 
     const revision = {
@@ -140,7 +136,7 @@ export async function updateDocument(req: Request, res: Response) {
       contentDiff: patch
     };
 
-    // 3. Atomic update with version check
+    // 2. Atomic update with version check. This is the sole source of truth for the version check.
     const result = await collection.findOneAndUpdate(
       { slug, version: expectedVersion },
       {
@@ -163,8 +159,11 @@ export async function updateDocument(req: Request, res: Response) {
     );
 
     if (!result) {
-      // Double check if it failed due to version change in the microsecond interval
+      // If result is null, it means there was a version conflict (or the document was concurrently deleted)
       const latest = await collection.findOne({ slug });
+      if (!latest) {
+        return res.status(404).json({ error: 'Document not found' });
+      }
       return res.status(409).json({ 
         error: 'Conflict: The document was updated concurrently.', 
         currentDocument: latest 
