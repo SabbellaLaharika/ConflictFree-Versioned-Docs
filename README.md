@@ -4,6 +4,13 @@ A production-ready collaborative wiki backend built with MongoDB, featuring an i
 
 ---
 
+
+## 🎥 Project Demo
+
+[![Watch the project demo on YouTube](https://img.youtube.com/vi/FxfwO-WQ1RI/hqdefault.jpg)](https://youtu.be/FxfwO-WQ1RI)
+
+---
+
 ## 📐 System Architecture
 
 Below is the high-level architecture of the backend service. It details the interaction between client applications, the core service engines, and MongoDB.
