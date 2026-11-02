@@ -7,7 +7,7 @@ A production-ready collaborative wiki backend built with MongoDB, featuring an i
 
 ## 🎥 Project Demo
 
-[![Watch the project demo on YouTube](https://img.youtube.com/vi/FxfwO-WQ1RI/hqdefault.jpg)](https://youtu.be/FxfwO-WQ1RI)
+[![Watch the project demo on YouTube](https://img.youtube.com/vi/FxfwO-WQ1RI/maxresdefault.jpg)](https://youtu.be/FxfwO-WQ1RI)
 
 ---
 
